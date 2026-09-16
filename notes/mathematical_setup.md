@@ -1,5 +1,4 @@
 # Basics
-
 Our goal is to simulate the motion of a thin square plate with free edges, the free edges and square shape make the math much simpler, giving us a clean analytic solution we can compare our results to.
 We want to predict the motion of this plate vibrating at a specific frequency, as we drive a force through the center of it.
 At resonance you get the strongest response and most distinct visual pattern in nodal lines.
@@ -10,7 +9,6 @@ We will use the elasticity model, which relates to the deformation of an elastic
     So rather than treating the plate like an ideal stretched membrane, we factor in its elastic bending stiffness.
 
 # Research Background
-
 Linqu Shao wrote a research paper in 2018 first modelling the plate using the 2D wave equation, but the nodal patterns didn't line up with the measured patterns. Then they used the model that we'll use for the actual case, which was a fourth order elasticity equation. They got more accurate results, but they had issues dealing with the boundry conditions.
 D'Alessio later wrote a research paper published in 2021 using the same equation, but had a better technique for dealing with the troublesome boundry conditions, and got better results. So this paper is what we'll be modelling our approach after.
 
