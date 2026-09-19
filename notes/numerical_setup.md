@@ -126,3 +126,5 @@ For the chosen initial displacement, the $(1,2)$ and $(2,1)$ modes have the same
 The exact solution is $u_{\mathrm{exact}}(x,y,t)=[\cos(\pi x)\cos(2\pi y)+\cos(2\pi x)\cos(\pi y)]\cos(5\pi^2t)$.
 
 The numerical error at each grid point can be calculated with $e_{i,j}=|u_{i,j}-u_{\mathrm{exact}}(x_i,y_j,t)|$.
+
+# Actual Case
