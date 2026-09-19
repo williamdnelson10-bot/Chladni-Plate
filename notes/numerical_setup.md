@@ -81,7 +81,7 @@ $u_{tt\,0,j}=-\frac{2w_{1,j}+w_{0,j+1}+w_{0,j-1}-4w_{0,j}}{h^2}$
 
 So at the bottom left corner for example:
 
-$u_{tt\,0,j}=-\frac{2w_{1,j}+w_{0,j+1}+w_{0,j-1}-4w_{0,j}}{h^2}$
+$u_{tt\,0,0}=-\frac{2w_{1,0}+2w_{0,1}-4w_{0,0}}{h^2}$
 
 ## First time step
 We need the displacement at the first new time increment:
@@ -99,7 +99,7 @@ $u_{tt\,i,j}^k\approx\frac{u_{i,j}^{k+1}-2u_{i,j}^k+u_{i,j}^{k-1}}{(\Delta t)^2}
 
 Solving for the next displacement:
 
-$u_{tt\,i,j}^k\approx\frac{u_{i,j}^{k+1}-2u_{i,j}^k+u_{i,j}^{k-1}}{(\Delta t)^2}$
+$u_{i,j}^{k+1}=2u_{i,j}^k-u_{i,j}^{k-1}+(\Delta t)^2u_{tt\,i,j}^k$
 
 Process for every time step:
 
@@ -128,3 +128,22 @@ The exact solution is $u_{\mathrm{exact}}(x,y,t)=[\cos(\pi x)\cos(2\pi y)+\cos(2
 The numerical error at each grid point can be calculated with $e_{i,j}=|u_{i,j}-u_{\mathrm{exact}}(x_i,y_j,t)|$.
 
 # Actual Case
+In the proper model of the experiment, we now need to factor in the center driving force, the actual boundry conditions, and the actual inital conditions. We know have an initial displacement $u(x,y,0)=0$, An initial velocity $u_t(x,y,0)=0$, an external force at the center $Q(x,y,t)=\delta(x)\delta(y)\cos(\omega_0t)$, and boundry conditions defined in mathematical_setup.md. 
+
+The new governing equation is:  
+$u_{tt}+\nabla^4u=Q(x,y,t)$
+
+## Free Edge Matrix
+In the validation case, you could just maintain the boundry conditions with ghost points. But now we need to use a matrix M, which represents the gridpoint plate equation, with the proper free edge conditions incorporated. We use the same square grid paramters as before.
+
+Before using the matrix for the center driven version, we want to make sure it works without Q. So we use equation $u_{tt}+\nabla^4u=0$. We assume the plate is vibrating as $u(x,y,t)=F(x,y)\cos(\omega t)$. We model this as an eigenvalue problem with $M\mathbf{F}=\lambda\mathbf{F}$. From this, we get eigenvalue equation: $\lambda=h^4\omega^2$, and $\lambda=h^4\omega^2$.
+
+Using these eigenvalues we're able to obtain the predicted natural frequencies, then compare them to the numbers reported in the D'Alessio paper. We did all of this because when I was trying to reproduce their patterns, my results were way off, so this gave me an easier way to troubleshoot the specific problem.
+
+## Driven Harmonic Solution
+Returning to the actual case, we use $L=\frac{M}{h^4}$ to convert M to the spatial operator L. We also don't need to use a bunch of time steps like in the previous case. In the previous case we couldn't predict the oscillation because we were just simulating the response to the initial and boundry conditions, but now that we have a driving force, we're interested in the sustained response at some set frequency. We solve $(L-\omega_0^2I)F=Q$ using a particular frequency, with no time dependence.
+
+## Center Force and Plots
+The center force is scaled $\frac{1}{h^2}$ to fit into the gridpoint model. At each chosen frequency, the code builds equation $\frac{1}{h^2}$, And then solves equation $AF=Q$. We repeat this process for every frequency we're interested in.
+
+Once the spatial response of F has been solved for a given frequency, the nodel lines are where $F(x,y)=0$. The code creates a contour plot wherever this condition is satisfied, and this is repeated for each relevant frequency. 
