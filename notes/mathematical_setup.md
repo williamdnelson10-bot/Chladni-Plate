@@ -18,6 +18,7 @@ D'Alessio first simulates a simpler case with a known solution, which can be use
 $$
 \frac{\partial^2 u}{\partial t^2}+D^2\nabla^4u=0
 $$
+
 $u(x,y,t)$ is the tranverse displacement of the plate, $x$ and $y$ are the spatial coordinates and $t$ for time, $D^2$ has to do with the flexural rigidity of the plate, and $\nabla^4u$ is the biharmoc operator which describes the plate's bending response, as a fourth order spatial derivative.
 
 The boundry conditions and initial conditions are chosen such that the equation has an exact solution.
@@ -35,6 +36,7 @@ $$
 $$
 w=\nabla^2u=\frac{\partial^2u}{\partial x^2}+\frac{\partial^2u}{\partial y^2}
 $$
+
 $w$ is a variable we use temporarily to simplify the simulation process, defined as the laplacian of the displacement.
 
 However, it's easier to use these equation and initial/boundry conditions, as well as the versions we'll use later in a non-dimensional form:
@@ -62,7 +64,7 @@ U_0(x,y)=\cos(\pi x)\cos(2\pi y)+\cos(2\pi x)\cos(\pi y)
 $$
 
 $$
-\dot U_0=0
+\dot{U}_0=0
 $$
 
 These dimensionless forms are facillitated by the relations:
@@ -74,7 +76,7 @@ $$
 With values:
 
 $$
-x^\ast=\frac{x}{a},\qquad y^\ast=\frac{y}{a},\qquad t^\ast=\frac{D}{a^2}t,\qquad u^\ast=\frac{u}{H},\qquad w^\ast=\nabla^{\ast 2}u^\ast,\qquad \dot U_0=\frac{HD}{a^2}\dot U_0^\ast
+x^\ast=\frac{x}{a},\qquad y^\ast=\frac{y}{a},\qquad t^\ast=\frac{D}{a^2}t,\qquad u^\ast=\frac{u}{H},\qquad w^\ast=\nabla^{\ast 2}u^\ast,\qquad \dot{U}_0=\frac{HD}{a^2}\dot{U}_0^\ast
 $$
 
 # Actual Case
@@ -89,24 +91,25 @@ $$
 $$
 Q(x,y,t)=\delta(x)\delta(y)\cos(\omega_0t)
 $$
+
 $Q(x,y,t)$ is the driving force through the center of the plate, modeled by dirac delta functions in $x$ and $y$, as well as an angular driving frequency $\omega_0$, related to the driving frequency by $\omega_0=2\pi f_0$.
 
 Boundry Conditions:
 
 $$
-\frac{\partial^2u}{\partial x^2}+\nu\frac{\partial^2u}{\partial y^2}=0\qquad \text{along }x=\pm1
+\frac{\partial^2u}{\partial x^2}+\mu\frac{\partial^2u}{\partial y^2}=0\qquad \text{along }x=\pm1
 $$
 
 $$
-\frac{\partial^3u}{\partial x^3}+(2-\nu)\frac{\partial^3u}{\partial x\partial y^2}=0\qquad \text{along }x=\pm1
+\frac{\partial^3u}{\partial x^3}+(2-\mu)\frac{\partial^3u}{\partial x\partial y^2}=0\qquad \text{along }x=\pm1
 $$
 
 $$
-\frac{\partial^2u}{\partial y^2}+\nu\frac{\partial^2u}{\partial x^2}=0\qquad \text{along }y=\pm1
+\frac{\partial^2u}{\partial y^2}+\mu\frac{\partial^2u}{\partial x^2}=0\qquad \text{along }y=\pm1
 $$
 
 $$
-\frac{\partial^3u}{\partial y^3}+(2-\nu)\frac{\partial^3u}{\partial x^2\partial y}=0\qquad \text{along }y=\pm1
+\frac{\partial^3u}{\partial y^3}+(2-\mu)\frac{\partial^3u}{\partial x^2\partial y}=0\qquad \text{along }y=\pm1
 $$
 
 $$

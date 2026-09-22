@@ -145,8 +145,6 @@ Before using the matrix for the center driven version, we want to make sure it w
 Using these eigenvalues we're able to obtain the predicted natural frequencies, then compare them to the numbers reported in the D'Alessio paper. We did all of this because when trying to reproduce their patterns, the results were way off, so this was a method that helped us determine what the specific problem in the code was.
 
 ## Driven Harmonic Solution
-## Driven Harmonic Solution
-
 For the actual case, the plate is driven at a chosen angular frequency $\omega_0$. Rather than stepping forward through time, we look for a harmonic response with the same time dependence as the driving force:
 
 $$
@@ -162,14 +160,16 @@ $L$ is the discretized spatial plate operator, and $I$ is the identity matrix. S
 ## Center Force and Plots
 The center force is scaled by $\frac{1}{h^2}$ to represent the point force on the discrete grid. At each chosen frequency, the code builds the matrix:
 
-$
+$$
 A=L-\omega_0^2I
-$
+$$
 
 and then solves
 
-$A\mathbf{F}=\mathbf{Q}$
+$$
+A\mathbf{F}=\mathbf{Q}
+$$
 
 We repeat this process for every frequency we're interested in.
 
-Once the spatial response of F has been solved for a given frequency, the nodel lines are where $F(x,y)=0$. The code creates a contour plot wherever this condition is satisfied, and this is repeated for each relevant frequency. 
+Once the spatial response of $F$ has been solved for a given frequency, the nodel lines are where $F(x,y)=0$. The code creates a contour plot wherever this condition is satisfied, and this is repeated for each relevant frequency. 
