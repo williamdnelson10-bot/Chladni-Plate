@@ -5,6 +5,7 @@ We want to simulate the behavior of the thin plate. The method used in D'Alessio
 You divide the plate up into a series of equally spaced points along the $x$ and $y$ directions. The initial displacement is zero, and the oscillations are caused by the center driven force. We turn on the force right at $t = 0$, such that the plate hasn't moved yet, but it will move once we travel some time $\Delta t$, a time step which remains constant throughout this simulation/experiment. At that time, we have some predicted displacement at every point, from the acceleration at the center, as well as from the initial conditions. We use neighboring displacements to estimate the acceleration at every point. We use these new accelerations to calculate a new set of diplacements at $2\Delta t$, then we repeat this process.
 
 However, since the original equation is in the fourth order, we need to use a two step process to make these calculations, using the variable $w$:
+
 $$
 \text{1)}\quad w=\nabla^2u
 $$
