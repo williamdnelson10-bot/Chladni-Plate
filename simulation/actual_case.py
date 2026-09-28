@@ -7,31 +7,70 @@ from scipy.sparse import bmat, csr_matrix, eye
 from scipy.sparse.linalg import spsolve
 
 
-# Poisson ratio for aluminum
-mu = 0.33
+# -------------------------
+# Physical plate parameters
+# -------------------------
 
-# Frequencies we want to simulate
-frequencies_to_run = [
-    190,
-    340,
-    490,
-    800,
-    955,
+# Our square aluminum plate
+plate_side_length = 17 * 0.0254   # 17 inches, converted to meters
+thickness = 0.125 * 0.0254        # 1/8 inch, converted to meters
+
+# Aluminum material properties
+youngs_modulus = 69e9             # Pa
+density = 2700                    # kg/m^3
+mu = 0.33                         # Poisson ratio
+
+
+# Half side length of the plate
+a = plate_side_length / 2
+
+
+# Plate parameter D
+D = np.sqrt(
+    youngs_modulus * thickness**2
+    / (12 * density * (1 - mu**2))
+)
+
+
+# Dimensionless natural angular frequencies
+# found using free_edge_test.py
+dimensionless_omega_values = [
+    13.966,
+    26.455,
+    39.658,
+    62.570,
+    72.208,
 ]
 
-# Dimensionless forcing frequencies used in the paper
-omega_values = {
-    190: 13.0,
-    340: 26.0,
-    490: 40.0,
-    800: 61.0,
-    955: 72.0,
-}
 
+# Convert the dimensionless natural frequencies
+# into physical frequencies for our plate, in Hz
+frequencies_to_run = [
+    round(
+        D * omega / (2 * np.pi * a**2),
+        1,
+    )
+    for omega in dimensionless_omega_values
+]
+
+
+# Match each physical frequency to the
+# dimensionless frequency used by the simulation
+omega_values = dict(
+    zip(
+        frequencies_to_run,
+        dimensionless_omega_values,
+    )
+)
+
+
+# -------------------------
+# Numerical grid
+# -------------------------
 
 # Number of intervals along each side
-# N = 40 is a good quick starting point
-N = 40
+# N = 40 to start, D'Alessio used 200
+N = 200
 
 # Grid spacing
 h = 2 / N
