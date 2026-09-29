@@ -1,0 +1,12 @@
+# Experimental Setup
+We generate a range of frequencies from a function generator. This function generator connects to an amplifier, which then connects to a driver. The driver is fit into a wooden ring, which connects to an outer box containing both of these components. The ring is high enough above the base of the box such that the base of the driver isn't touching it, this avoids wobbling. We attach a small plastic cap to the outside of the dust cap with super glue, and drill a hold through the center of the cap to firmly set a rod into. This thin rod is then drilled through the center of a thin aluminum plate. The plate is only being held up by the center rod, its edges are free.
+
+# Procedure
+First we make sure that the plate is level. Then we pour silica sand on the plate roughly evenly spread throughout it. We want enough to see the patterns clearly, but not so much that the collective weight of the many grains of sand next to each other halts the possible movement of the other surrounding grains of sand.
+
+From the actual_case simulation, we have predicted frequencies that the plate should be resonant at. However, the experimental setup has flaws so we'll use our predicted frequencies as rough benchmarks, but we'll still check both lower and higher frequencies to find where the plate is most resonant. And we'll do this for each predicted natural frequency we have, as well as look for any other resonances that may have not shown up in the simulation.
+
+As we're sweeping through different frequencies using the function generator, we'll find the resonances by paying attention to how visually distinct the patterns are, how loud the sound is, how strongly the plate is vibrating, and how strongly the sand is being moved/vibrated. Once we find a resonance, we record the frequency, and take a picture. 
+
+# Data Collection
+We write down the exact settings we're using to the best of our ability, including stuff like amplifier settings, any relevant function generator settings, and obviously the frequencies themselves that we use. Then we compare what frequencies we end up using to those generated from the simulation, as well as the pattern from our photos vs the simulated patterns.
