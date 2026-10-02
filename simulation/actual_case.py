@@ -13,7 +13,7 @@ from scipy.sparse.linalg import spsolve
 
 # Our square aluminum plate
 plate_side_length = 17 * 0.0254   # 17 inches, converted to meters
-thickness = 0.125 * 0.0254        # 1/8 inch, converted to meters
+thickness = 0.0625 * 0.0254        # 1/16 inch, converted to meters
 
 # Aluminum material properties
 youngs_modulus = 69e9             # Pa
@@ -32,36 +32,32 @@ D = np.sqrt(
 )
 
 
-# Dimensionless natural angular frequencies
-# found using free_edge_test.py
-dimensionless_omega_values = [
-    13.966,
-    26.455,
-    39.658,
-    62.570,
-    72.208,
-]
+# -------------------------
+# Frequencies to simulate
+# -------------------------
 
-
-# Convert the dimensionless natural frequencies
-# into physical frequencies for our plate, in Hz
+# Physical frequencies measured during the experiment
 frequencies_to_run = [
-    round(
-        D * omega / (2 * np.pi * a**2),
-        1,
-    )
-    for omega in dimensionless_omega_values
+    100,
+    195,
+    250,
+    273,
+    360,
+    558,
+    604,
+    675,
 ]
 
 
-# Match each physical frequency to the
-# dimensionless frequency used by the simulation
-omega_values = dict(
-    zip(
-        frequencies_to_run,
-        dimensionless_omega_values,
+# Convert each physical frequency in Hz into the
+# dimensionless angular frequency used by the simulation
+omega_values = {
+    frequency: (
+        2 * np.pi * a**2 * frequency
+        / D
     )
-)
+    for frequency in frequencies_to_run
+}
 
 
 # -------------------------
@@ -457,18 +453,37 @@ print("All frequencies finished.")
 # Combined plot
 # -------------------------
 
+number_of_frequencies = len(frequencies_to_run)
+
+columns = 4
+
+rows = (
+    number_of_frequencies
+    + columns
+    - 1
+) // columns
+
+
 fig, axes = plt.subplots(
-    1,
-    len(frequencies_to_run),
-    figsize=(18, 4),
+    rows,
+    columns,
+    figsize=(12, 6),
 )
 
 
-for ax, frequency_hz in zip(
-    axes,
-    frequencies_to_run,
+axes = np.array(
+    axes
+).reshape(-1)
+
+
+for index, frequency_hz in enumerate(
+    frequencies_to_run
 ):
+
+    ax = axes[index]
+
     u = results[frequency_hz]
+
 
     ax.contour(
         X,
@@ -478,12 +493,12 @@ for ax, frequency_hz in zip(
         colors="black",
     )
 
+
     ax.set_title(
-        f"{frequency_hz} Hz"
+        f"{frequency_hz} Hz",
+        fontsize=11,
     )
 
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
 
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
@@ -491,19 +506,50 @@ for ax, frequency_hz in zip(
     ax.set_aspect("equal")
 
 
+    # Only label y on the left column
+    if index % columns == 0:
+        ax.set_ylabel("y")
+
+
+    # Only label x on the bottom row
+    if index >= number_of_frequencies - columns:
+        ax.set_xlabel("x")
+
+
+    ax.set_xticks(
+        [-1, 0, 1]
+    )
+
+    ax.set_yticks(
+        [-1, 0, 1]
+    )
+
+
+# Hide any unused subplot spaces
+for index in range(
+    number_of_frequencies,
+    len(axes),
+):
+
+    axes[index].axis("off")
+
+
 fig.suptitle(
-    "Free-Edge Plate Nodal Patterns"
+    "Free-Edge Plate Nodal Patterns",
+    fontsize=16,
 )
 
-plt.tight_layout()
+
+plt.tight_layout(
+    rect=[0, 0, 1, 0.95]
+)
 
 
-# Save all five together
 fig.savefig(
     "plots/nodal_all_frequencies.png",
     dpi=300,
+    bbox_inches="tight",
 )
 
 
-# Show the combined figure
 plt.show()

@@ -1,305 +1,823 @@
+import os
+
 import numpy as np
+import matplotlib.pyplot as plt
+
+from scipy.sparse import bmat, csr_matrix
+from scipy.sparse.linalg import eigs
 
 
-# Same values used for the eigenvalue check in the paper
-N = 10
-mu = 0.33
+# -------------------------
+# Physical plate parameters
+# -------------------------
 
+# Our square aluminum plate
+plate_side_length = 17 * 0.0254   # 17 inches, converted to meters
+thickness = 0.0625 * 0.0254       # 1/16 inch, converted to meters
+
+# Aluminum material properties
+youngs_modulus = 69e9             # Pa
+density = 2700                    # kg/m^3
+mu = 0.33                         # Poisson ratio
+
+
+# Half side length of the plate
+a = plate_side_length / 2
+
+
+# Plate parameter D
+D = np.sqrt(
+    youngs_modulus * thickness**2
+    / (12 * density * (1 - mu**2))
+)
+
+
+# -------------------------
+# Frequency range
+# -------------------------
+
+minimum_frequency = 50
+maximum_frequency = 2000
+
+
+# Calculate enough of the lowest eigenvalues
+# to get past the 2000 Hz range.
+number_of_eigenvalues = 100
+
+
+# -------------------------
+# Numerical grid
+# -------------------------
+
+# Same grid resolution used in actual_case.py
+N = 200
+
+# Grid spacing
 h = 2 / N
+
+# Number of grid points along one side
 size = N + 1
 
+# Total number of grid points
+number_of_points = size**2
 
-# Coefficients from the appendix
-b1 = -4 * (3 + mu) * (1 - mu)
-b2 = 8 * (1 - mu)
-b3 = 2 * (2 - mu)
-b4 = -4 * (3 - mu)
-b5 = -4 * (2 + mu) * (1 - mu)
-b6 = 2 * (1 - mu**2)
-b7 = 15 - 8 * mu - 5 * mu**2
-b8 = 2 * (8 - 4 * mu - 3 * mu**2)
+# Coordinates
+x = np.linspace(-1, 1, size)
+y = np.linspace(-1, 1, size)
+
+# Center of the plate
+center = N // 2
+
+# Position of the center in the flattened vector
+center_index = center + center * size
 
 
-def make_b1():
-    matrix = np.zeros((size, size))
+# Folder for the natural mode plots
+os.makedirs(
+    "plots/natural_modes",
+    exist_ok=True,
+)
 
-    matrix[0, 0] = b1
-    matrix[0, 1] = b2
+
+# -------------------------
+# Build the free-edge matrix
+# -------------------------
+
+def build_free_edge_matrix():
+
+    # Constants from the appendix of the paper
+    b1 = -4 * (3 + mu) * (1 - mu)
+    b2 = 8 * (1 - mu)
+    b3 = 2 * (2 - mu)
+    b4 = -4 * (3 - mu)
+    b5 = -4 * (2 + mu) * (1 - mu)
+    b6 = 2 * (1 - mu**2)
+    b7 = 15 - 8 * mu - 5 * mu**2
+    b8 = 2 * (8 - 4 * mu - 3 * mu**2)
+
+
+    def make_b1():
+
+        matrix = np.zeros((size, size))
+
+        matrix[0, 0] = b1
+        matrix[0, 1] = b2
+
+        for i in range(1, size - 1):
+
+            matrix[i, i - 1] = b3
+            matrix[i, i] = b4
+            matrix[i, i + 1] = b3
+
+        matrix[-1, -2] = b2
+        matrix[-1, -1] = b1
+
+        return csr_matrix(matrix)
+
+
+    def make_b2():
+
+        matrix = np.zeros((size, size))
+
+        matrix[0, 0] = b1 / 2
+        matrix[0, 1] = b3
+
+        matrix[1, 0] = b2 / 4
+        matrix[1, 1] = b4 / 2
+        matrix[1, 2] = b3 / 2
+
+        for i in range(2, size - 2):
+
+            matrix[i, i - 1] = b3 / 2
+            matrix[i, i] = b4 / 2
+            matrix[i, i + 1] = b3 / 2
+
+        matrix[-2, -3] = b3 / 2
+        matrix[-2, -2] = b4 / 2
+        matrix[-2, -1] = b2 / 4
+
+        matrix[-1, -2] = b3
+        matrix[-1, -1] = b1 / 2
+
+        return csr_matrix(matrix)
+
+
+    def make_b3():
+
+        matrix = np.zeros((size, size))
+
+        matrix[0, 0] = b5
+        matrix[0, 1] = b3
+
+        matrix[1, 0] = b3 / 2
+        matrix[1, 1] = -8
+        matrix[1, 2] = 2
+
+        for i in range(2, size - 2):
+
+            matrix[i, i - 1] = 2
+            matrix[i, i] = -8
+            matrix[i, i + 1] = 2
+
+        matrix[-2, -3] = 2
+        matrix[-2, -2] = -8
+        matrix[-2, -1] = b3 / 2
+
+        matrix[-1, -2] = b3
+        matrix[-1, -1] = b5
+
+        return csr_matrix(matrix)
+
+
+    def make_d1():
+
+        matrix = np.zeros((size, size))
+
+        matrix[0, 0] = -b1
+        matrix[0, 1] = b1
+        matrix[0, 2] = b6
+
+        matrix[1, 0] = b1 / 2
+        matrix[1, 1] = b7
+        matrix[1, 2] = b5
+        matrix[1, 3] = b6 / 2
+
+        for i in range(2, size - 2):
+
+            matrix[i, i - 2] = b6 / 2
+            matrix[i, i - 1] = b5
+            matrix[i, i] = b8
+            matrix[i, i + 1] = b5
+            matrix[i, i + 2] = b6 / 2
+
+        matrix[-2, -4] = b6 / 2
+        matrix[-2, -3] = b5
+        matrix[-2, -2] = b7
+        matrix[-2, -1] = b1 / 2
+
+        matrix[-1, -3] = b6
+        matrix[-1, -2] = b1
+        matrix[-1, -1] = -b1
+
+        return csr_matrix(matrix)
+
+
+    def make_d2():
+
+        matrix = np.zeros((size, size))
+
+        matrix[0, 0] = b7
+        matrix[0, 1] = b4
+        matrix[0, 2] = 2
+
+        matrix[1, 0] = b4 / 2
+        matrix[1, 1] = 18
+        matrix[1, 2] = -8
+        matrix[1, 3] = 1
+
+        for i in range(2, size - 2):
+
+            matrix[i, i - 2] = 1
+            matrix[i, i - 1] = -8
+            matrix[i, i] = 19
+            matrix[i, i + 1] = -8
+            matrix[i, i + 2] = 1
+
+        matrix[-2, -4] = 1
+        matrix[-2, -3] = -8
+        matrix[-2, -2] = 18
+        matrix[-2, -1] = b4 / 2
+
+        matrix[-1, -3] = 2
+        matrix[-1, -2] = b4
+        matrix[-1, -1] = b7
+
+        return csr_matrix(matrix)
+
+
+    def make_d3():
+
+        matrix = np.zeros((size, size))
+
+        matrix[0, 0] = b8
+        matrix[0, 1] = b4
+        matrix[0, 2] = 2
+
+        matrix[1, 0] = b4 / 2
+        matrix[1, 1] = 19
+        matrix[1, 2] = -8
+        matrix[1, 3] = 1
+
+        for i in range(2, size - 2):
+
+            matrix[i, i - 2] = 1
+            matrix[i, i - 1] = -8
+            matrix[i, i] = 20
+            matrix[i, i + 1] = -8
+            matrix[i, i + 2] = 1
+
+        matrix[-2, -4] = 1
+        matrix[-2, -3] = -8
+        matrix[-2, -2] = 19
+        matrix[-2, -1] = b4 / 2
+
+        matrix[-1, -3] = 2
+        matrix[-1, -2] = b4
+        matrix[-1, -1] = b8
+
+        return csr_matrix(matrix)
+
+
+    # Diagonal matrices from the appendix
+    I1 = np.zeros((size, size))
+
+    I1[0, 0] = b6
+    I1[-1, -1] = b6
 
     for i in range(1, size - 1):
-        matrix[i, i - 1] = b3
-        matrix[i, i] = b4
-        matrix[i, i + 1] = b3
 
-    matrix[-1, -2] = b2
-    matrix[-1, -1] = b1
+        I1[i, i] = 2
 
-    return matrix
+    I1 = csr_matrix(I1)
 
+    I2 = I1 / 2
 
-def make_b2():
-    matrix = np.zeros((size, size))
 
-    matrix[0, 0] = b1 / 2
-    matrix[0, 1] = b3
+    # Build the block matrices
+    B1 = make_b1()
+    B2 = make_b2()
+    B3 = make_b3()
 
-    matrix[1, 0] = b2 / 4
-    matrix[1, 1] = b4 / 2
-    matrix[1, 2] = b3 / 2
+    D1 = make_d1()
+    D2 = make_d2()
+    D3 = make_d3()
 
-    for i in range(2, size - 2):
-        matrix[i, i - 1] = b3 / 2
-        matrix[i, i] = b4 / 2
-        matrix[i, i + 1] = b3 / 2
 
-    matrix[-2, -3] = b3 / 2
-    matrix[-2, -2] = b4 / 2
-    matrix[-2, -1] = b2 / 4
+    # Empty block layout for the full matrix
+    blocks = []
 
-    matrix[-1, -2] = b3
-    matrix[-1, -1] = b1 / 2
+    for row in range(size):
 
-    return matrix
+        block_row = [None] * size
 
+        blocks.append(block_row)
 
-def make_b3():
-    matrix = np.zeros((size, size))
 
-    matrix[0, 0] = b5
-    matrix[0, 1] = b3
+    # First block row
+    blocks[0][0] = D1
+    blocks[0][1] = B1
+    blocks[0][2] = I1
 
-    matrix[1, 0] = b3 / 2
-    matrix[1, 1] = -8
-    matrix[1, 2] = 2
 
-    for i in range(2, size - 2):
-        matrix[i, i - 1] = 2
-        matrix[i, i] = -8
-        matrix[i, i + 1] = 2
+    # Second block row
+    blocks[1][0] = B2
+    blocks[1][1] = D2
+    blocks[1][2] = B3
+    blocks[1][3] = I2
 
-    matrix[-2, -3] = 2
-    matrix[-2, -2] = -8
-    matrix[-2, -1] = b3 / 2
 
-    matrix[-1, -2] = b3
-    matrix[-1, -1] = b5
+    # Interior block rows
+    for row in range(2, size - 2):
 
-    return matrix
+        blocks[row][row - 2] = I2
+        blocks[row][row - 1] = B3
+        blocks[row][row] = D3
+        blocks[row][row + 1] = B3
+        blocks[row][row + 2] = I2
 
 
-def make_d1():
-    matrix = np.zeros((size, size))
+    # Second-last block row
+    blocks[size - 2][size - 4] = I2
+    blocks[size - 2][size - 3] = B3
+    blocks[size - 2][size - 2] = D2
+    blocks[size - 2][size - 1] = B2
 
-    matrix[0, 0] = -b1
-    matrix[0, 1] = b1
-    matrix[0, 2] = b6
 
-    matrix[1, 0] = b1 / 2
-    matrix[1, 1] = b7
-    matrix[1, 2] = b5
-    matrix[1, 3] = b6 / 2
+    # Last block row
+    blocks[size - 1][size - 3] = I1
+    blocks[size - 1][size - 2] = B1
+    blocks[size - 1][size - 1] = D1
 
-    for i in range(2, size - 2):
-        matrix[i, i - 2] = b6 / 2
-        matrix[i, i - 1] = b5
-        matrix[i, i] = b8
-        matrix[i, i + 1] = b5
-        matrix[i, i + 2] = b6 / 2
 
-    matrix[-2, -4] = b6 / 2
-    matrix[-2, -3] = b5
-    matrix[-2, -2] = b7
-    matrix[-2, -1] = b1 / 2
+    # Join everything into one sparse matrix
+    return bmat(
+        blocks,
+        format="csr",
+    )
 
-    matrix[-1, -3] = b6
-    matrix[-1, -2] = b1
-    matrix[-1, -1] = -b1
 
-    return matrix
+# -------------------------
+# Calculate natural modes
+# -------------------------
 
+print("Building free-edge matrix...")
 
-def make_d2():
-    matrix = np.zeros((size, size))
+M = build_free_edge_matrix()
 
-    matrix[0, 0] = b7
-    matrix[0, 1] = b4
-    matrix[0, 2] = 2
+print("Matrix finished.")
+print("Calculating natural modes...")
 
-    matrix[1, 0] = b4 / 2
-    matrix[1, 1] = 18
-    matrix[1, 2] = -8
-    matrix[1, 3] = 1
 
-    for i in range(2, size - 2):
-        matrix[i, i - 2] = 1
-        matrix[i, i - 1] = -8
-        matrix[i, i] = 19
-        matrix[i, i + 1] = -8
-        matrix[i, i + 2] = 1
+# Search near zero to obtain the lowest-frequency modes.
+#
+# A tiny nonzero sigma avoids sitting directly
+# on the zero-frequency rigid-body modes.
+eigenvalues, eigenvectors = eigs(
+    M,
+    k=number_of_eigenvalues,
+    sigma=1e-8,
+    which="LM",
+)
 
-    matrix[-2, -4] = 1
-    matrix[-2, -3] = -8
-    matrix[-2, -2] = 18
-    matrix[-2, -1] = b4 / 2
 
-    matrix[-1, -3] = 2
-    matrix[-1, -2] = b4
-    matrix[-1, -1] = b7
+print("Eigenvalue calculation finished.")
 
-    return matrix
 
+# -------------------------
+# Convert to physical frequencies
+# -------------------------
 
-def make_d3():
-    matrix = np.zeros((size, size))
+modes = []
 
-    matrix[0, 0] = b8
-    matrix[0, 1] = b4
-    matrix[0, 2] = 2
+all_positive_frequencies = []
 
-    matrix[1, 0] = b4 / 2
-    matrix[1, 1] = 19
-    matrix[1, 2] = -8
-    matrix[1, 3] = 1
 
-    for i in range(2, size - 2):
-        matrix[i, i - 2] = 1
-        matrix[i, i - 1] = -8
-        matrix[i, i] = 20
-        matrix[i, i + 1] = -8
-        matrix[i, i + 2] = 1
+for index in range(len(eigenvalues)):
 
-    matrix[-2, -4] = 1
-    matrix[-2, -3] = -8
-    matrix[-2, -2] = 19
-    matrix[-2, -1] = b4 / 2
+    eigenvalue = eigenvalues[index]
 
-    matrix[-1, -3] = 2
-    matrix[-1, -2] = b4
-    matrix[-1, -1] = b8
 
-    return matrix
+    # The physical eigenvalues should be real.
+    if abs(eigenvalue.imag) > 1e-7:
 
+        continue
 
-# Smaller diagonal matrices from the appendix
-I1 = np.zeros((size, size))
 
-I1[0, 0] = b6
-I1[-1, -1] = b6
+    eigenvalue = eigenvalue.real
 
-for i in range(1, size - 1):
-    I1[i, i] = 2
 
-I2 = I1 / 2
+    # Ignore zero-frequency rigid-body modes
+    # and tiny negative numerical values.
+    if eigenvalue <= 1e-12:
 
+        continue
 
-# Build the remaining block matrices
-B1 = make_b1()
-B2 = make_b2()
-B3 = make_b3()
 
-D1 = make_d1()
-D2 = make_d2()
-D3 = make_d3()
+    # Convert the eigenvalue into the
+    # dimensionless angular natural frequency.
+    #
+    # lambda = h^4 * omega^2
+    omega = (
+        np.sqrt(eigenvalue)
+        / h**2
+    )
 
 
-# Full matrix M has (N + 1)^2 rows and columns
-matrix_size = size**2
-M = np.zeros((matrix_size, matrix_size))
+    # Convert the dimensionless angular frequency
+    # into the physical frequency for our plate.
+    frequency_hz = (
+        D * omega
+        / (2 * np.pi * a**2)
+    )
 
 
-def put_block(block_row, block_column, block):
-    row_start = block_row * size
-    column_start = block_column * size
+    all_positive_frequencies.append(
+        frequency_hz
+    )
 
-    M[
-        row_start:row_start + size,
-        column_start:column_start + size
-    ] = block
 
+    # Only keep modes inside our frequency range.
+    if (
+        frequency_hz < minimum_frequency
+        or frequency_hz > maximum_frequency
+    ):
 
-# First block row
-put_block(0, 0, D1)
-put_block(0, 1, B1)
-put_block(0, 2, I1)
+        continue
 
 
-# Second block row
-put_block(1, 0, B2)
-put_block(1, 1, D2)
-put_block(1, 2, B3)
-put_block(1, 3, I2)
+    # Get the eigenvector for this mode.
+    mode_vector = eigenvectors[:, index]
 
 
-# Interior block rows
-for row in range(2, size - 2):
-    put_block(row, row - 2, I2)
-    put_block(row, row - 1, B3)
-    put_block(row, row, D3)
-    put_block(row, row + 1, B3)
-    put_block(row, row + 2, I2)
+    # Numerical eigenvectors can contain
+    # a small complex phase.
+    largest_index = np.argmax(
+        np.abs(mode_vector)
+    )
 
+    phase = np.angle(
+        mode_vector[largest_index]
+    )
 
-# Second-last block row
-put_block(size - 2, size - 4, I2)
-put_block(size - 2, size - 3, B3)
-put_block(size - 2, size - 2, D2)
-put_block(size - 2, size - 1, B2)
+    mode_vector = (
+        mode_vector
+        * np.exp(-1j * phase)
+    )
 
+    mode_vector = mode_vector.real
 
-# Last block row
-put_block(size - 1, size - 3, I1)
-put_block(size - 1, size - 2, B1)
-put_block(size - 1, size - 1, D1)
 
+    # Normalize so the largest displacement
+    # anywhere on the plate is 1.
+    maximum_amplitude = np.max(
+        np.abs(mode_vector)
+    )
 
-# Calculate the eigenvalues
-eigenvalues = np.linalg.eigvals(M)
+    mode_vector = (
+        mode_vector
+        / maximum_amplitude
+    )
 
-# Tiny negative values can appear from numerical rounding
-positive_eigenvalues = []
 
-for value in eigenvalues:
-    if value.real > 1e-9:
-        positive_eigenvalues.append(value.real)
+    # Motion at the center compared with
+    # the largest displacement in the mode.
+    center_response = abs(
+        mode_vector[center_index]
+    )
 
 
-# lambda = h^4 * omega^2
-frequencies = []
+    # Convert the flattened eigenvector back
+    # into the square plate.
+    mode_shape = mode_vector.reshape(
+        (size, size),
+        order="F",
+    )
 
-for value in positive_eigenvalues:
-    omega = np.sqrt(value) / h**2
-    frequencies.append(omega)
 
-frequencies.sort()
+    modes.append(
+        {
+            "frequency": frequency_hz,
+            "omega": omega,
+            "center_response": center_response,
+            "shape": mode_shape,
+        }
+    )
 
 
-# Frequencies D'Alessio reports for N = 10
-paper_frequencies = [
-    14.0,
-    26.5,
-    39.7,
-    62.6,
-    72.2,
-]
+# Sort modes from lowest to highest frequency.
+modes.sort(
+    key=lambda mode: mode["frequency"]
+)
 
 
-print("Free-edge eigenvalue test")
-print("-------------------------")
-print(f"N = {N}")
-print(f"h = {h}")
+# -------------------------
+# Group repeated frequencies
+# -------------------------
+
+# Modes within 0.1 Hz are treated as having
+# essentially the same natural frequency.
+frequency_tolerance = 0.1
+
+
+frequency_groups = []
+
+
+for mode in modes:
+
+    if len(frequency_groups) == 0:
+
+        frequency_groups.append(
+            [mode]
+        )
+
+        continue
+
+
+    group_frequency = (
+        frequency_groups[-1][0]["frequency"]
+    )
+
+
+    if (
+        abs(
+            mode["frequency"]
+            - group_frequency
+        )
+        <= frequency_tolerance
+    ):
+
+        frequency_groups[-1].append(
+            mode
+        )
+
+    else:
+
+        frequency_groups.append(
+            [mode]
+        )
+
+
+# Keep one representative mode shape
+# for each natural frequency.
+#
+# If multiple modes share the same frequency,
+# keep the one with the largest center motion.
+natural_modes = []
+
+
+for group in frequency_groups:
+
+    representative = group[0]
+
+
+    for mode in group[1:]:
+
+        if (
+            mode["center_response"]
+            > representative["center_response"]
+        ):
+
+            representative = mode
+
+
+    natural_modes.append(
+        representative
+    )
+
+
+# -------------------------
+# Print the results
+# -------------------------
+
 print()
 
+print(
+    f"Natural frequencies from "
+    f"{minimum_frequency} to "
+    f"{maximum_frequency} Hz"
+)
 
-# Find the computed frequency closest to each paper value
-for paper_frequency in paper_frequencies:
-    closest = min(
-        frequencies,
-        key=lambda frequency: abs(
-            frequency - paper_frequency
-        )
+print(
+    "----------------------------------------"
+)
+
+
+for mode_number, mode in enumerate(
+    natural_modes,
+    start=1,
+):
+
+    frequency = mode["frequency"]
+
+    center_percent = (
+        100 * mode["center_response"]
     )
+
 
     print(
-        f"Paper: {paper_frequency:5.1f}   "
-        f"Computed: {closest:7.3f}"
+        f"{mode_number:2d}: "
+        f"{frequency:7.1f} Hz   "
+        f"Center = "
+        f"{center_percent:5.1f}%"
     )
+
+
+# Check that the calculation reached
+# beyond the requested frequency range.
+if len(all_positive_frequencies) > 0:
+
+    highest_frequency = max(
+        all_positive_frequencies
+    )
+
+    print()
+
+    print(
+        f"Highest frequency calculated: "
+        f"{highest_frequency:.1f} Hz"
+    )
+
+
+    if highest_frequency < maximum_frequency:
+
+        print(
+            "Increase number_of_eigenvalues "
+            "because the calculation did not "
+            "reach 2000 Hz."
+        )
+
+
+# -------------------------
+# Plot every individual mode
+# -------------------------
+
+X, Y = np.meshgrid(
+    x,
+    y,
+)
+
+
+for mode_number, mode in enumerate(
+    natural_modes,
+    start=1,
+):
+
+    frequency = mode["frequency"]
+
+    mode_shape = mode["shape"]
+
+
+    fig, ax = plt.subplots(
+        figsize=(6, 6)
+    )
+
+
+    ax.contour(
+        X,
+        Y,
+        mode_shape.T,
+        levels=[0],
+        colors="black",
+    )
+
+
+    ax.set_title(
+        f"{frequency:.1f} Hz"
+    )
+
+
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-1, 1)
+
+    ax.set_aspect("equal")
+
+    plt.tight_layout()
+
+
+    fig.savefig(
+        "plots/natural_modes/"
+        f"mode_{mode_number:02d}_"
+        f"{frequency:.1f}hz.png",
+        dpi=300,
+    )
+
+
+    plt.close(fig)
+
+
+# -------------------------
+# Combined plots
+# -------------------------
+
+number_of_modes = len(
+    natural_modes
+)
+
+
+# Put at most 9 modes on each page.
+modes_per_figure = 9
+
+columns = 3
+rows = 3
+
+
+number_of_figures = (
+    number_of_modes
+    + modes_per_figure
+    - 1
+) // modes_per_figure
+
+
+for figure_number in range(
+    number_of_figures
+):
+
+    start = (
+        figure_number
+        * modes_per_figure
+    )
+
+    end = min(
+        start + modes_per_figure,
+        number_of_modes,
+    )
+
+
+    fig, axes = plt.subplots(
+        rows,
+        columns,
+        figsize=(11, 11),
+    )
+
+
+    axes = np.array(
+        axes
+    ).reshape(-1)
+
+
+    for plot_number, mode_index in enumerate(
+        range(start, end)
+    ):
+
+        ax = axes[plot_number]
+
+        mode = natural_modes[
+            mode_index
+        ]
+
+        frequency = mode["frequency"]
+
+        mode_shape = mode["shape"]
+
+
+        ax.contour(
+            X,
+            Y,
+            mode_shape.T,
+            levels=[0],
+            colors="black",
+        )
+
+
+        ax.set_title(
+            f"{frequency:.1f} Hz",
+            fontsize=11,
+            pad=6,
+        )
+
+
+        ax.set_xlim(-1, 1)
+        ax.set_ylim(-1, 1)
+
+        ax.set_aspect("equal")
+
+
+        ax.set_xticks(
+            [-1, 0, 1]
+        )
+
+        ax.set_yticks(
+            [-1, 0, 1]
+        )
+
+
+    # Hide unused spaces on the final page.
+    for plot_number in range(
+        end - start,
+        len(axes),
+    ):
+
+        axes[plot_number].axis(
+            "off"
+        )
+
+
+    plt.subplots_adjust(
+        hspace=0.45,
+        wspace=0.35,
+    )
+
+
+    fig.savefig(
+        "plots/natural_modes/"
+        f"natural_modes_50_2000hz_"
+        f"part{figure_number + 1}.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
+
+
+plt.show()

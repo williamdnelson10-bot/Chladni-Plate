@@ -13,7 +13,7 @@ from scipy.sparse.linalg import eigs
 
 # Our square aluminum plate
 plate_side_length = 17 * 0.0254   # 17 inches, converted to meters
-thickness = 0.125 * 0.0254        # 1/8 inch, converted to meters
+thickness = 0.0625 * 0.0254        # 1/16 inch, converted to meters
 
 # Aluminum material properties
 youngs_modulus = 69e9             # Pa
