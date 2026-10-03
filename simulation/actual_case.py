@@ -89,7 +89,10 @@ center_index = center + center * size
 
 
 # Make sure the plots folder exists
-os.makedirs("plots", exist_ok=True)
+os.makedirs(
+    "plots/actual_case",
+    exist_ok=True,
+)
 
 
 def build_free_edge_matrix():
@@ -439,9 +442,9 @@ for frequency_hz in frequencies_to_run:
 
     # Save the plot
     fig.savefig(
-        f"plots/nodal_{frequency_hz}hz.png",
-        dpi=300,
-    )
+    f"plots/actual_case/nodal_{frequency_hz}hz.png",
+    dpi=300,
+)
 
     plt.close(fig)
 
@@ -546,7 +549,7 @@ plt.tight_layout(
 
 
 fig.savefig(
-    "plots/nodal_all_frequencies.png",
+    "plots/actual_case/nodal_all_frequencies.png",
     dpi=300,
     bbox_inches="tight",
 )
