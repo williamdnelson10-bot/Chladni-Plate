@@ -13,7 +13,7 @@ from scipy.sparse.linalg import eigs, spsolve
 
 # Our square aluminum plate
 plate_side_length = 17 * 0.0254   # 17 inches in meters
-thickness = 0.125 * 0.0254        # 1/8 inch in meters
+thickness = 0.0625 * 0.0254        # 1/16 inch, converted to meters
 
 # Aluminum material properties
 youngs_modulus = 69e9             # Pa
@@ -37,7 +37,7 @@ D = np.sqrt(
 # -------------------------
 
 minimum_frequency = 50
-maximum_frequency = 2000
+maximum_frequency = 1000
 
 
 # Same idea as natural_modes.py.

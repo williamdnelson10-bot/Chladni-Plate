@@ -37,12 +37,12 @@ D = np.sqrt(
 # -------------------------
 
 minimum_frequency = 50
-maximum_frequency = 700
+maximum_frequency = 1000
 
 
 # Calculate enough of the lowest eigenvalues
 # to get past the 700 Hz range.
-number_of_eigenvalues = 40
+number_of_eigenvalues = 100
 
 
 # -------------------------
