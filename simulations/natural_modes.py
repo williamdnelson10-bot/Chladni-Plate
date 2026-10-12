@@ -48,7 +48,8 @@ X, Y = np.meshgrid(x, y)
 center = N // 2
 center_index = center + center * size
 
-output_folder = "plots/v2/natural_modes"
+project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+output_folder = os.path.join(project_folder, "plots", "natural_modes")
 os.makedirs(output_folder, exist_ok=True)
 
 
