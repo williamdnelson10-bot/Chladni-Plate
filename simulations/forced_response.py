@@ -74,7 +74,8 @@ X, Y = np.meshgrid(x, y)
 center = N // 2
 center_index = center + center * size
 
-output_folder = "plots/v2/forced_response"
+project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+output_folder = os.path.join(project_folder, "plots", "forced_response")
 os.makedirs(output_folder, exist_ok=True)
 
 
