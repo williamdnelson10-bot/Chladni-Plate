@@ -1,9 +1,4 @@
-# Experimental Results
+# Initial Setup
+In our first attempt to perform this experiment we were using a lightweight driver and a plastic cap, with the same nylon screw, plate, and enclosure. However, we noticed that with the full setup in place, there was some noticeable compression from the driver due to the weight of the plate. We also only leveled the plate once it was on the stool, but we failed to account for the fact that the floor wasn't perfectly level, or the stool, so when we got it level the plate was still pretty uneven relative to the enclosure. We tried finding the resonances from using a phone app off to the side rather than a centered microphone over the plate. We would look at the total SPL at a frequency, not the strength of the particular frequency we were using. So when we performed our full sweep of the frequency range we made sure we made sure we hit the frequencies where we got the loudest response measured at that position.
 
-| Predicted Frequency (Hz) | Measured Resonance (Hz) | Difference (Hz) | Notes |
-|---:|---:|---:|---|
-| 234.1 |  |  |  |
-| 443.4 |  |  |  |
-| 664.6 |  |  |  |
-| 1048.6 |  |  |  |
-| 1210.1 |  |  |  |
+# Results
