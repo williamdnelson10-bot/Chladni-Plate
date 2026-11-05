@@ -133,6 +133,8 @@ The exact solution is $u_{\mathrm{exact}}(x,y,t)=[\cos(\pi x)\cos(2\pi y)+\cos(2
 The numerical error at each grid point can be calculated with $e_{i,j}=|u_{i,j}-u_{\mathrm{exact}}(x_i,y_j,t)|$.
 
 # Actual Case
+It's worth noting that I ended up using a matrix calculation method to obtain the vibration patterns directly, rather than the specific time steps as mentioned. This was due to issues getting the code to work properly. I used the original time stepping approach for the validation case, but switched to this other method from then on.
+
 In the proper model of the experiment, we now need to factor in the center driving force, the actual boundry conditions, and the actual inital conditions. We know have an initial displacement $u(x,y,0)=0$, An initial velocity $u_t(x,y,0)=0$, an external force at the center $Q(x,y,t)=\delta(x)\delta(y)\cos(\omega_0t)$, and boundry conditions defined in mathematical_setup.md. 
 
 The new governing equation is:  

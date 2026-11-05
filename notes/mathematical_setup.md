@@ -1,5 +1,5 @@
 # Basics
-Our goal is to simulate the motion of a thin square plate with free edges, the free edges and square shape make the math much simpler, giving us a clean analytic solution we can compare our results to.
+We model a thin square plate with free edges. The square geometry gives useful symmetry, but the free-edge conditions are difficult to solve analytically, so we use a numerical model. A simpler problem with different boundary conditions provides an exact solution for an initial check.
 We want to predict the motion of this plate vibrating at a specific frequency, as we drive a force through the center of it.
 At resonance, you get the strongest response and most distinct visual pattern visible in nodal lines.
     These nodal lines are where the sand we pour onto the plate will collect, because the anti-nodal regions will vibrate it towards these lines, following whatever natural frequency pattern occurs at that particular mode.
@@ -92,7 +92,13 @@ $$
 Q(x,y,t)=\delta(x)\delta(y)\cos(\omega_0t)
 $$
 
-$Q(x,y,t)$ is the driving force through the center of the plate, modeled by dirac delta functions in $x$ and $y$, as well as an angular driving frequency $\omega_0$, related to the driving frequency by $\omega_0=2\pi f_0$.
+(Q(x,y,t)) represents the oscillating force applied at the center of the plate, modeled using Dirac delta functions. Because we're using the dimensionless equation, the angular driving frequency must also be dimensionless. We convert the physical driving frequency (f_0), measured in Hz, using
+
+$$
+\omega_0^\ast=\frac{2\pi a^2}{D}f_0
+$$
+
+where (a) is half the plate's side length. In the dimensionless equations, we drop the asterisk for simplicity.
 
 Boundry Conditions:
 
