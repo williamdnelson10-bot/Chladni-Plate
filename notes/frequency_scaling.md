@@ -1,7 +1,7 @@
 # Physical Frequency Scaling
 Recommended to read the mathematical_setup and numerical_setup first
 
-In the D'Alessio paper, they used their experimental parameters to convert the dimensional equations and relevant values into non-dimensional ones. Then they used the natural frequencies associated with these, and that's why the code itself doesn't explicity have all of the relevant quantities mentioned. The quantities which are implicity used in the code are $E,\ \rho,\ l,\ a$. So we need to use the values which pertain to our own setup to determine what frequencies we should use.
+In the D'Alessio paper, they used their experimental parameters to convert the dimensional equations and relevant values into non-dimensional ones. Then they used the natural frequencies associated with these, and that's why the code itself doesn't explicitly have all of the relevant quantities mentioned. The quantities which are implicitly used in the code are $E,\ \rho,\ l,\ a$. So we need to use the values which pertain to our own setup to determine what frequencies we should use.
 
 ## Plate Parameters
 
@@ -19,7 +19,7 @@ $$
 a=\frac{L}{2}
 $$
 
-After converting to the dimensionless form, these bounds become $-1\leq x,y\leq1$. So our bounds end up being the same, but the difference in $a$ values is relevant in equation:
+After converting to the dimensionless form, these bounds become $-1\leq x,y\leq1$. So our bounds end up being the same, but the difference in $a$ values is relevant in the equation:
 
 $$
 f=\frac{D\omega^\ast}{2\pi a^2}
