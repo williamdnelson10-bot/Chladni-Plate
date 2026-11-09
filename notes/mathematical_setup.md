@@ -3,27 +3,27 @@ We model a thin square plate with free edges. The square geometry gives useful s
 We want to predict the motion of this plate vibrating at a specific frequency, as we drive a force through the center of it.
 At resonance, you get the strongest response and most distinct visual pattern visible in nodal lines.
     These nodal lines are where the sand we pour onto the plate will collect, because the anti-nodal regions will vibrate it towards these lines, following whatever natural frequency pattern occurs at that particular mode.
-The center driving force creates waves which travel outwards towards the edge then reflect back to interefere with each other, to create standing waves.
+The center driving force creates waves which travel outwards towards the edge then reflect back to interfere with each other, to create standing waves.
 
-We will use the elasticity model, which relates to the deformation of an elastic (the plate in this case) due to stress, strain, and displacement distribution resulting from external forces (driving force, boundry/support forces, etc.)
+We will use the elasticity model, which relates to the deformation of an elastic (the plate in this case) due to stress, strain, and displacement distribution resulting from external forces (driving force, boundary/support forces, etc.)
     So rather than treating the plate like an ideal stretched membrane, we factor in its elastic bending stiffness.
 
 # Research Background
-Linqu Shao wrote a research paper in 2018 first modelling the plate as an ideal stretched membrane, using the 2D wave equation. But the nodal patterns didn't line up with the measured patterns. Then they used the model that we'll use for the actual case, which was a fourth order elasticity equation. They got more accurate results, but they had issues dealing with the boundry conditions.
-D'Alessio later wrote a research paper published in 2021 using the same equation, but had a better technique for dealing with the troublesome boundry conditions, and got more accurate results. So this paper is what we'll be modelling our approach after.
+Linqi Shao wrote a research paper in 2018 first modelling the plate as an ideal stretched membrane, using the 2D wave equation. But the nodal patterns didn't line up with the measured patterns. Then they used the model that we'll use for the actual case, which was a fourth order elasticity equation. They got more accurate results, but they had issues dealing with the boundary conditions.
+D'Alessio later wrote a research paper published in 2021 using the same equation, but had a better technique for dealing with the troublesome boundary conditions, and got more accurate results. So this paper is what we'll be modelling our approach after.
 
 # Simpler Case
-D'Alessio first simulates a simpler case with a known solution, which can be used to compare to the proper initial and boundry conditions, where there is no known solution. In this simpler case he still uses the elasticity equation, but with no force term $Q$:
+D'Alessio first simulates a simpler case with a known solution, which can be used to compare to the proper initial and boundary conditions, where there is no known solution. In this simpler case he still uses the elasticity equation, but with no force term $Q$:
 
 $$
 \frac{\partial^2 u}{\partial t^2}+D^2\nabla^4u=0
 $$
 
-$u(x,y,t)$ is the tranverse displacement of the plate, $x$ and $y$ are the spatial coordinates and $t$ for time, $D^2$ has to do with the flexural rigidity of the plate, and $\nabla^4u$ is the biharmoc operator which describes the plate's bending response, as a fourth order spatial derivative.
+$u(x,y,t)$ is the transverse displacement of the plate, $x$ and $y$ are the spatial coordinates and $t$ for time, $D^2$ has to do with the flexural rigidity of the plate, and $\nabla^4u$ is the biharmonic operator which describes the plate's bending response, as a fourth order spatial derivative.
 
-The boundry conditions and initial conditions are chosen such that the equation has an exact solution.
+The boundary conditions and initial conditions are chosen such that the equation has an exact solution.
 
-Boundry conditions:
+Boundary conditions:
 
 $$
 \frac{\partial u}{\partial x}=0,\qquad \frac{\partial w}{\partial x}=0\qquad \text{along }x=\pm a
@@ -37,9 +37,9 @@ $$
 w=\nabla^2u=\frac{\partial^2u}{\partial x^2}+\frac{\partial^2u}{\partial y^2}
 $$
 
-$w$ is a variable we use temporarily to simplify the simulation process, defined as the laplacian of the displacement.
+$w$ is a variable we use temporarily to simplify the simulation process, defined as the Laplacian of the displacement.
 
-However, it's easier to use these equation and initial/boundry conditions, as well as the versions we'll use later in a non-dimensional form:
+However, it's easier to use these equations and initial/boundary conditions, as well as the versions we'll use later in a non-dimensional form:
 
 Equation:
 
@@ -47,7 +47,7 @@ $$
 \frac{\partial^2 u}{\partial t^2}+\nabla^4 u=0
 $$
 
-Boundry conditions:
+Boundary conditions:
 
 $$
 \frac{\partial u}{\partial x}=0,\qquad \frac{\partial w}{\partial x}=0\qquad \text{along }x=\pm1
@@ -67,7 +67,7 @@ $$
 \dot{U}_0=0
 $$
 
-These dimensionless forms are facillitated by the relations:
+These dimensionless forms are facilitated by the relations:
 
 $$
 x=ax^\ast,\qquad y=ay^\ast,\qquad t=\frac{a^2}{D}t^\ast,\qquad u=Hu^\ast,\qquad w=\frac{H}{a^2}w^\ast,\qquad U_0=HU_0^\ast
@@ -80,7 +80,7 @@ x^\ast=\frac{x}{a},\qquad y^\ast=\frac{y}{a},\qquad t^\ast=\frac{D}{a^2}t,\qquad
 $$
 
 # Actual Case
-In the case which actually matches the conditions of the experiment, we now have an oscillating force at the center. We have the real boundry conditions, which also involve the corners, as well as initial conditions which aren't artifically set at some displacement, there is no initial displacement or initial velocity.
+In the case which actually matches the conditions of the experiment, we now have an oscillating force at the center. We have the real boundary conditions, which also involve the corners, as well as initial conditions which aren't artificially set at some displacement, there is no initial displacement or initial velocity.
 
 Equation:
 
@@ -100,7 +100,7 @@ $$
 
 where (a) is half the plate's side length. In the dimensionless equations, we drop the asterisk for simplicity.
 
-Boundry Conditions:
+Boundary Conditions:
 
 $$
 \frac{\partial^2u}{\partial x^2}+\mu\frac{\partial^2u}{\partial y^2}=0\qquad \text{along }x=\pm1
