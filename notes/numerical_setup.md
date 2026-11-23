@@ -1,8 +1,8 @@
 # Intro
-We want to simulate the behavior of the thin plate. The method used in D'Alessio's paper is called the finite volume difference. We divide the plate into a grid of points, and model each point as having some displacement u which extends halfway towards the next closest point in every spatial direction. However, all of this spatial information, as well as the acceleration information we will calculate, are all contained at each grid point. The method will be explained in the more realstic experimental case, but the idea is similar for the simpler case, just without a $Q$ term, and with different initial conditions and boundries.
+We want to simulate the behavior of the thin plate. The method used in D'Alessio's paper is called the finite volume difference. We divide the plate into a grid of points, and model each point as having some displacement u which extends halfway towards the next closest point in every spatial direction. However, all of this spatial information, as well as the acceleration information we will calculate, are all contained at each grid point. The method will be explained in the more realistic experimental case, but the idea is similar for the simpler case, just without a $Q$ term, and with different initial conditions and boundaries.
 
 # Finite Volume Method
-You divide the plate up into a series of equally spaced points along the $x$ and $y$ directions. The initial displacement is zero, and the oscillations are caused by the center driven force. We turn on the force right at $t = 0$, such that the plate hasn't moved yet, but it will move once we travel some time $\Delta t$, a time step which remains constant throughout this simulation/experiment. At that time, we have some predicted displacement at every point, from the acceleration at the center, as well as from the initial conditions. We use neighboring displacements to estimate the acceleration at every point. We use these new accelerations to calculate a new set of diplacements at $2\Delta t$, then we repeat this process.
+You divide the plate up into a series of equally spaced points along the $x$ and $y$ directions. The initial displacement is zero, and the oscillations are caused by the center driven force. We turn on the force right at $t = 0$, such that the plate hasn't moved yet, but it will move once we travel some time $\Delta t$, a time step which remains constant throughout this simulation/experiment. At that time, we have some predicted displacement at every point, from the acceleration at the center, as well as from the initial conditions. We use neighboring displacements to estimate the acceleration at every point. We use these new accelerations to calculate a new set of displacements at $2\Delta t$, then we repeat this process.
 
 However, since the original equation is in the fourth order, we need to use a two step process to make these calculations, using the variable $w$:
 
@@ -27,24 +27,24 @@ $\dot U_0=0$
 $u_{i,j}^0=U_0(x_i,y_j)$
 
 ## Calculating w
-To approximate $w$ at each grid point, we use a five point setup, consisting of the particular point itself, as well as the surrounding points in each cardinal direction. At each interior gridpoint, we don't need to worry about boundry conditions yet, and can approximate $w=\nabla^2u$ using  
+To approximate $w$ at each grid point, we use a five point setup, consisting of the particular point itself, as well as the surrounding points in each cardinal direction. At each interior gridpoint, we don't need to worry about boundary conditions yet, and can approximate $w=\nabla^2u$ using  
 $w_{i,j}=\frac{u_{i+1,j}+u_{i-1,j}+u_{i,j+1}+u_{i,j-1}-4u_{i,j}}{h^2}$  
 
-## Boundry values of w
-To get $w$ on the edges, we need to use the boundry conditions:  
+## Boundary values of w
+To get $w$ on the edges, we need to use the boundary conditions:  
 
 $\frac{\partial u}{\partial x}=0$ along $x=\pm1$
 
 $\frac{\partial u}{\partial y}=0$ along $y=\pm1$
 
-We need to use a ghost point just outside the plane to maintain the proper boundry conditions. For example, along the left edge we get:
+We need to use a ghost point just outside the plane to maintain the proper boundary conditions. For example, along the left edge we get:
 
 $u_{-1,j}=u_{1,j}$
 
 $w_{0,j}=\frac{2u_{1,j}+u_{0,j+1}+u_{0,j-1}-4u_{0,j}}{h^2}$
 
 ## Corner values of w
-Now we're mising neighbors in two directions instead of one, so we apply the ghost point idea in both directions:  
+Now we're missing neighbors in two directions instead of one, so we apply the ghost point idea in both directions:  
 
 $w_{0,0}=\frac{2u_{1,0}+2u_{0,1}-4u_{0,0}}{h^2}$
 
@@ -64,7 +64,7 @@ Now at an interior point:
 $u_{tt\,i,j}=-\frac{w_{i+1,j}+w_{i-1,j}+w_{i,j+1}+w_{i,j-1}-4w_{i,j}}{h^2}$
 
 ## Acceleration: edges and corners
-Along the left and right edges we use boundry condition:
+Along the left and right edges we use the boundary condition:
 
 $\frac{\partial w}{\partial x}=0$
 
@@ -135,15 +135,15 @@ The numerical error at each grid point can be calculated with $e_{i,j}=|u_{i,j}-
 # Actual Case
 It's worth noting that I ended up using a matrix calculation method to obtain the vibration patterns directly, rather than the specific time steps as mentioned. This was due to issues getting the code to work properly. I used the original time stepping approach for the validation case, but switched to this other method from then on.
 
-In the proper model of the experiment, we now need to factor in the center driving force, the actual boundry conditions, and the actual inital conditions. We know have an initial displacement $u(x,y,0)=0$, An initial velocity $u_t(x,y,0)=0$, an external force at the center $Q(x,y,t)=\delta(x)\delta(y)\cos(\omega_0t)$, and boundry conditions defined in mathematical_setup.md. 
+In the proper model of the experiment, we now need to factor in the center driving force, the actual boundary conditions, and the actual initial conditions. We now have an initial displacement $u(x,y,0)=0$, an initial velocity $u_t(x,y,0)=0$, an external force at the center $Q(x,y,t)=\delta(x)\delta(y)\cos(\omega_0t)$, and boundary conditions defined in mathematical_setup.md. 
 
 The new governing equation is:  
 $u_{tt}+\nabla^4u=Q(x,y,t)$
 
 ## Free Edge Matrix
-In the validation case, you could just maintain the boundry conditions with ghost points. But now we need to use a matrix M, which represents the gridpoint plate equation, with the proper free edge conditions incorporated. We use the same square grid paramters as before.
+In the validation case, you could just maintain the boundary conditions with ghost points. But now we need to use a matrix M, which represents the gridpoint plate equation, with the proper free edge conditions incorporated. We use the same square grid parameters as before.
 
-Before using the matrix for the center driven version, we want to make sure it works without $Q$. So we use equation $u_{tt}+\nabla^4u=0$. We assume the plate is vibrating as $u(x,y,t)=F(x,y)\cos(\omega t)$. We model this as an eigenvalue problem with $M\mathbf{F}=\lambda\mathbf{F}$. From this, we get eigenvalue equation: $\lambda=h^4\omega^2$. Here, $M$ is the matrix representation of the plate's spatial equation, $\mathbf{F}$ is the vector containing the displacement pattern $F(x,y)$ at all grid points, $\lambda$ is an eigenvalue of $M$, and $\omega$ is the corresponding angular natural frequency.
+Before using the matrix for the center driven version, we want to make sure it works without $Q$. So we use the equation $u_{tt}+\nabla^4u=0$. We assume the plate is vibrating as $u(x,y,t)=F(x,y)\cos(\omega t)$. We model this as an eigenvalue problem with $M\mathbf{F}=\lambda\mathbf{F}$. From this, we get the eigenvalue equation: $\lambda=h^4\omega^2$. Here, $M$ is the matrix representation of the plate's spatial equation, $\mathbf{F}$ is the vector containing the displacement pattern $F(x,y)$ at all grid points, $\lambda$ is an eigenvalue of $M$, and $\omega$ is the corresponding angular natural frequency.
 
 Using these eigenvalues we're able to obtain the predicted natural frequencies, then compare them to the numbers reported in the D'Alessio paper. We did all of this because when trying to reproduce their patterns, the results were way off, so this was a method that helped us determine what the specific problem in the code was.
 
@@ -156,7 +156,7 @@ $$
 
 Substituting this into the plate equation separates out the time dependence, leaving a spatial equation that can be solved directly for $F$.
 
-The free-edge matrix $M$ is converted into the spatial plate operator $L=\frac{M}{h^4}$, with resulting gridpoint equation: $(L-\omega_0^2I)\mathbf{F}=\mathbf{Q}$.
+The free-edge matrix $M$ is converted into the spatial plate operator $L=\frac{M}{h^4}$, with the resulting gridpoint equation: $(L-\omega_0^2I)\mathbf{F}=\mathbf{Q}$.
 
 $L$ is the discretized spatial plate operator, and $I$ is the identity matrix. Solving this system gives the spatial vibration pattern of the plate at the chosen driving frequency.
 
@@ -175,4 +175,4 @@ $$
 
 We repeat this process for every frequency we're interested in.
 
-Once the spatial response of $F$ has been solved for a given frequency, the nodel lines are where $F(x,y)=0$. The code creates a contour plot wherever this condition is satisfied, and this is repeated for each relevant frequency. 
+Once the spatial response of $F$ has been solved for a given frequency, the nodal lines are where $F(x,y)=0$. The code creates a contour plot wherever this condition is satisfied, and this is repeated for each relevant frequency. 
